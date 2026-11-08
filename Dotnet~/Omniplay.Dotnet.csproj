@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Runtime folder's sources as a .NET library (netstandard2.1: Unity, Godot's C#, any .NET).
+       It sits in Dotnet~, a folder Unity ignores, so that the UPM package never sees a project, bin or obj. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>Omniplay</AssemblyName>
+    <RootNamespace>Omniplay</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PackageId>Omniplay.Dotnet</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Marco Meyer</Authors>
+    <Description>omnisense/omniplay inside a .NET game server: verify the tickets players present, mint them, send the server's heartbeats. netstandard2.1, no dependency, no Unity.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/glitchr-omnisense/omniplay-dotnet</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Runtime/**/*.cs" />
+  </ItemGroup>
+</Project>

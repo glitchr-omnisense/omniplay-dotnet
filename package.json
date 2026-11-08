@@ -1,0 +1,17 @@
+{
+  "name": "io.omniplay.dotnet",
+  "version": "0.1.0",
+  "displayName": "Omniplay .NET",
+  "description": "omnisense/omniplay inside a game server, in plain C# (no UnityEngine): verify the tickets players present, mint them, send the server's heartbeats. The code omniplay/mirror and omniplay/netcode run on; usable by any Unity server.",
+  "unity": "2021.3",
+  "author": {
+    "name": "Marco Meyer",
+    "email": "marco.meyer@glitchr.io"
+  },
+  "license": "MIT",
+  "keywords": ["omniplay", "multiplayer", "game-server", "ticket", "hmac", "heartbeat"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/glitchr-omnisense/omniplay-dotnet.git"
+  }
+}

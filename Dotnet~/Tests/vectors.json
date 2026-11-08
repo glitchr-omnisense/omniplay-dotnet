@@ -1,0 +1,282 @@
+{
+    "format": "base64url(json payload) \".\" hex(hmac_sha256(that base64url, secret)); the payload names \"room\" (a string) and \"exp\" (Unix seconds)",
+    "clock": "valid tickets expire at 4102444800 (2100-01-01), expired ones at 1000000000 (2001-09-09): verify against the real clock",
+    "sign": [
+        {
+            "name": "a payload of three claims, with the secret \"secret\" (the first vector of the format, as written in 2026)",
+            "payload": {
+                "uid": 2,
+                "room": "lobby",
+                "exp": 2000000000
+            },
+            "secret": "secret",
+            "json": "{\"uid\":2,\"room\":\"lobby\",\"exp\":2000000000}",
+            "ticket": "eyJ1aWQiOjIsInJvb20iOiJsb2JieSIsImV4cCI6MjAwMDAwMDAwMH0.313fb4df1b3be1ffc941ae513ec9a3fcad3827593abcfb3545d9424b7b2aedfb"
+        },
+        {
+            "name": "a player's seat on a server",
+            "payload": {
+                "sub": "player-42",
+                "name": "Ada",
+                "room": "eu-1-a3f9",
+                "exp": 4102444800
+            },
+            "secret": "s3cr3t-shared-with-the-servers",
+            "json": "{\"sub\":\"player-42\",\"name\":\"Ada\",\"room\":\"eu-1-a3f9\",\"exp\":4102444800}",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c"
+        },
+        {
+            "name": "slashes and characters past ASCII, escaped as json_encode() escapes them",
+            "payload": {
+                "sub": "p/7",
+                "name": "Zoë 🎮",
+                "url": "https://example.org/a/b",
+                "room": "lobby",
+                "exp": 4102444800
+            },
+            "secret": "s3cr3t-shared-with-the-servers",
+            "json": "{\"sub\":\"p\\/7\",\"name\":\"Zo\\u00eb \\ud83c\\udfae\",\"url\":\"https:\\/\\/example.org\\/a\\/b\",\"room\":\"lobby\",\"exp\":4102444800}",
+            "ticket": "eyJzdWIiOiJwXC83IiwibmFtZSI6IlpvXHUwMGViIFx1ZDgzY1x1ZGZhZSIsInVybCI6Imh0dHBzOlwvXC9leGFtcGxlLm9yZ1wvYVwvYiIsInJvb20iOiJsb2JieSIsImV4cCI6NDEwMjQ0NDgwMH0.53818dc546d17736fb509157c46de7f7b3afd6baaa97e260e3e8a16d43579a79"
+        },
+        {
+            "name": "a server's heartbeat token: its room is \"heartbeat:\" and the server's id (Heartbeats::room())",
+            "payload": {
+                "room": "heartbeat:eu-1-a3f9",
+                "exp": 4102444800
+            },
+            "secret": "s3cr3t-shared-with-the-servers",
+            "json": "{\"room\":\"heartbeat:eu-1-a3f9\",\"exp\":4102444800}",
+            "ticket": "eyJyb29tIjoiaGVhcnRiZWF0OmV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.efbd29226c51647cba3792215f2f37001289db80ca749b70108747958abf7530"
+        },
+        {
+            "name": "nested claims: a list, an object, a boolean, a null",
+            "payload": {
+                "sub": "p-1",
+                "roles": [
+                    "host",
+                    "player"
+                ],
+                "team": {
+                    "id": 3,
+                    "color": "red"
+                },
+                "ok": true,
+                "none": null,
+                "room": "lobby",
+                "exp": 4102444800
+            },
+            "secret": "s3cr3t-shared-with-the-servers",
+            "json": "{\"sub\":\"p-1\",\"roles\":[\"host\",\"player\"],\"team\":{\"id\":3,\"color\":\"red\"},\"ok\":true,\"none\":null,\"room\":\"lobby\",\"exp\":4102444800}",
+            "ticket": "eyJzdWIiOiJwLTEiLCJyb2xlcyI6WyJob3N0IiwicGxheWVyIl0sInRlYW0iOnsiaWQiOjMsImNvbG9yIjoicmVkIn0sIm9rIjp0cnVlLCJub25lIjpudWxsLCJyb29tIjoibG9iYnkiLCJleHAiOjQxMDI0NDQ4MDB9.33a0d48efc4350167f556cfcd0bd1318159bd4624b0e4314e0ddb94cd5b6c123"
+        }
+    ],
+    "verify": [
+        {
+            "name": "a player's seat, for its room",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": true,
+            "payload": {
+                "sub": "player-42",
+                "name": "Ada",
+                "room": "eu-1-a3f9",
+                "exp": 4102444800
+            }
+        },
+        {
+            "name": "slashes and characters past ASCII: the payload read back as it was",
+            "ticket": "eyJzdWIiOiJwXC83IiwibmFtZSI6IlpvXHUwMGViIFx1ZDgzY1x1ZGZhZSIsInVybCI6Imh0dHBzOlwvXC9leGFtcGxlLm9yZ1wvYVwvYiIsInJvb20iOiJsb2JieSIsImV4cCI6NDEwMjQ0NDgwMH0.53818dc546d17736fb509157c46de7f7b3afd6baaa97e260e3e8a16d43579a79",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": true,
+            "payload": {
+                "sub": "p/7",
+                "name": "Zoë 🎮",
+                "url": "https://example.org/a/b",
+                "room": "lobby",
+                "exp": 4102444800
+            }
+        },
+        {
+            "name": "nested claims read back",
+            "ticket": "eyJzdWIiOiJwLTEiLCJyb2xlcyI6WyJob3N0IiwicGxheWVyIl0sInRlYW0iOnsiaWQiOjMsImNvbG9yIjoicmVkIn0sIm9rIjp0cnVlLCJub25lIjpudWxsLCJyb29tIjoibG9iYnkiLCJleHAiOjQxMDI0NDQ4MDB9.33a0d48efc4350167f556cfcd0bd1318159bd4624b0e4314e0ddb94cd5b6c123",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": true,
+            "payload": {
+                "sub": "p-1",
+                "roles": [
+                    "host",
+                    "player"
+                ],
+                "team": {
+                    "id": 3,
+                    "color": "red"
+                },
+                "ok": true,
+                "none": null,
+                "room": "lobby",
+                "exp": 4102444800
+            }
+        },
+        {
+            "name": "a server's heartbeat token, for its heartbeat room",
+            "ticket": "eyJyb29tIjoiaGVhcnRiZWF0OmV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.efbd29226c51647cba3792215f2f37001289db80ca749b70108747958abf7530",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "heartbeat:eu-1-a3f9",
+            "valid": true,
+            "payload": {
+                "room": "heartbeat:eu-1-a3f9",
+                "exp": 4102444800
+            }
+        },
+        {
+            "name": "a player's ticket presented as the server's heartbeat: another room",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "heartbeat:eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "an expiry with a fraction: its integer part is compared",
+            "ticket": "eyJyb29tIjoibG9iYnkiLCJleHAiOjQxMDI0NDQ4MDAuNX0.743cdb7fca2c55a244c82cadfcec5fa2a138aa55d5e43ac9711f954b86c5a389",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": true,
+            "payload": {
+                "room": "lobby",
+                "exp": 4102444800.5
+            }
+        },
+        {
+            "name": "expired",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJyb29tIjoibG9iYnkiLCJleHAiOjEwMDAwMDAwMDB9.c1f7697eb46523ef1f96afd0d5a5dae78f2fc081203eacec62986c08707e32fb",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "another room",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-b000",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "another secret",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c",
+            "secret": "another-secret",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "an empty secret verifies nothing",
+            "ticket": "eyJyb29tIjoibG9iYnkiLCJleHAiOjQxMDI0NDQ4MDB9.38527413be755e17e9b780e51a0edfe9daf620f1916010103bdeed6fe2d59b4b",
+            "secret": "",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "the payload changed, the signature kept",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItMSIsIm5hbWUiOiJBZGEiLCJyb29tIjoiZXUtMS1hM2Y5IiwiZXhwIjo0MTAyNDQ0ODAwfQ.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "the signature's last digit changed",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a570",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "the signature in capitals: hex is lower case",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0BB9F63E3F6C9D7237C18855738470BAE0F54410D4D1177EE87CC65C4608A57C",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "no signature after the dot",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "no dot",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "an extra dot: the signature is what follows the last one",
+            "ticket": "eyJzdWIiOiJwbGF5ZXItNDIiLCJuYW1lIjoiQWRhIiwicm9vbSI6ImV1LTEtYTNmOSIsImV4cCI6NDEwMjQ0NDgwMH0.0bb9f63e3f6c9d7237c18855738470bae0f54410d4d1177ee87cc65c4608a57c.x",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "eu-1-a3f9",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "no expiry",
+            "ticket": "eyJyb29tIjoibG9iYnkifQ.0c65b816c392821e0329b6b34d5124e32f21e2ad79797126d33b20601444b41c",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "an expiry that is a boolean",
+            "ticket": "eyJyb29tIjoibG9iYnkiLCJleHAiOnRydWV9.a56485251f47bb1bd92253578b54b9e8754e65ddc655ae3a84c1a9945564e820",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "a room that is a number, asked as a string",
+            "ticket": "eyJyb29tIjo1LCJleHAiOjQxMDI0NDQ4MDB9.016fea9c84a31e5638ac6bebdf4579a3005caec440fb79cdc201253cfc55cd02",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "5",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "no room",
+            "ticket": "eyJleHAiOjQxMDI0NDQ4MDB9.4c17506c37e27f7264a80c673ad1ed25fe9012907f722e21d5f52e94f7fb3ac4",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "a payload that is a list",
+            "ticket": "WyJsb2JieSIsNDEwMjQ0NDgwMF0.3bc558b5820d51d560dcba2468018965dc7a7d486c66adbc3b6199551f746a99",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        },
+        {
+            "name": "a signed body that is not base64url JSON",
+            "ticket": "not*base64.06c1f7084477225a2e169bccf401d9dfd025f2e21febecb8d8592c2e2a3490e2",
+            "secret": "s3cr3t-shared-with-the-servers",
+            "room": "lobby",
+            "valid": false,
+            "payload": null
+        }
+    ]
+}
