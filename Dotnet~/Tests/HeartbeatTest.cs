@@ -104,3 +104,22 @@ namespace Omniplay.Tests
         }
     }
 }
+
+namespace Omniplay.Tests
+{
+    public class TicketGateTest
+    {
+        [Test]
+        public void ATicketOpensOneConnectionForItsRoomOnly()
+        {
+            var gate = new TicketGate("not-a-real-secret", "eu-1");
+            var ticket = Tickets.Mint("not-a-real-secret", "eu-1", 60, new JsonObject { { "sub", "player-42" } }, 1800000000);
+
+            Assert.That(gate.Admit(ticket.Token, 1800000000)?.Player, Is.EqualTo("player-42"));
+            Assert.That(gate.Admit(ticket.Token, 1800000001), Is.Null, "the same ticket a second time");
+            Assert.That(gate.Admit(Tickets.Mint("not-a-real-secret", "eu-2", 60, null, 1800000000).Token, 1800000000), Is.Null, "another server's");
+            Assert.That(new TicketGate(null, "eu-1").Admit(ticket.Token, 1800000000), Is.Null, "no secret: nobody");
+            Assert.That(new TicketGate(null, "eu-1").Configured, Is.False);
+        }
+    }
+}

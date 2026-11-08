@@ -25,6 +25,9 @@ await heartbeat.SendAsync(players: 5, Health.Healthy);   // every 10 s or so; St
 - `Tickets.Sign(JsonObject, secret)`, `SignJson(json, secret)`, `Mint(secret, room, ttl, claims)`:
   JSON written as PHP's `json_encode()` writes it (`Json.Write`), so a ticket signed here is byte for
   byte the one PHP signs.
+- `TicketGate(secret, room)`, `FromEnvironment()`: `Admit(token)` gives the ticket when it holds
+  and was not admitted before - one ticket, one connection - forgetting the tokens once expired.
+  omniplay/mirror and omniplay/netcode let players in through it.
 - `HeartbeatClient`: `Token()`, `Body()`, `SendAsync(players, health, registration)` (a
   `Registration` with the server's address registers one started by hand), `Start(state, every)`
   on a thread-pool timer for a plain .NET server; `FromEnvironment()`.
@@ -56,12 +59,13 @@ The format is omniplay's `docs/tickets.md`, the heartbeat its `docs/heartbeat.md
 cd Dotnet~/Tests && dotnet test
 ```
 
-On 2026-11-08, .NET SDK 10.0.403: 35 tests green - the 5 sign vectors (the JSON as PHP writes it,
+On 2026-11-08, .NET SDK 10.0.403: 36 tests green - the 5 sign vectors (the JSON as PHP writes it,
 the ticket from the payload and from the JSON), the 22 verify vectors (the payload key by key, or
 null, as each says), the expiry's edge, minting, JSON byte for byte as PHP 8.4.27 writes a value
 with slashes, accents, an emoji, controls and numbers, and heartbeats sent to a handler of the
 test's own process (the body, a token that holds for `heartbeat:<server>` and not for the server's
-room, the heartbeat vector, the timer's beats with the state of the moment), the environment read.
+room, the heartbeat vector, the timer's beats with the state of the moment), the environment read,
+the gate admitting a ticket once and for its room only.
 The library itself builds for netstandard2.1 with warnings as errors.
 
 Not verified: inside Unity (the package was not imported in an editor; the asmdef and the metas
