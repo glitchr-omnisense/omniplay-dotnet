@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
+
+## [0.1.0] - 2026-11-13
 
 ### Added
 - `Omniplay.Dotnet` (NuGet) and `io.omniplay.dotnet` (UPM), assembly `Omniplay`: `Tickets` (Verify,

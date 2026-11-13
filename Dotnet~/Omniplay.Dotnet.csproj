@@ -14,7 +14,14 @@
     <Description>omnisense/omniplay inside a .NET game server: verify the tickets players present, mint them, send the server's heartbeats. netstandard2.1, no dependency, no Unity.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/glitchr-omnisense/omniplay-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/glitchr-omnisense/omniplay-dotnet</PackageProjectUrl>
+    <PackageTags>omniplay;game-server;ticket;hmac;heartbeat;multiplayer</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="../Runtime/**/*.cs" />
   </ItemGroup>

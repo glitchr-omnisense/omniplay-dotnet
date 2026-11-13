@@ -40,8 +40,8 @@ The format is omniplay's `docs/tickets.md`, the heartbeat its `docs/heartbeat.md
 
 ## Installing
 
-- **.NET** (a server, Godot's C#): the project `Dotnet~/Omniplay.Dotnet.csproj` (NuGet id
-  `Omniplay.Dotnet`, `dotnet pack` it, or reference the project).
+- **.NET** (a server, Godot's C#): `dotnet add package Omniplay.Dotnet` once it is on NuGet; until
+  then the project `Dotnet~/Omniplay.Dotnet.csproj` (`dotnet pack` it, or reference the project).
 - **Unity**: this repository is also the UPM package `io.omniplay.dotnet` - its root `package.json`,
   the sources in `Runtime/` with the assembly `Omniplay` (no engine references). Unity ignores
   `Dotnet~/` (a folder ending in `~`), where the .NET projects, their tests and their builds live:
