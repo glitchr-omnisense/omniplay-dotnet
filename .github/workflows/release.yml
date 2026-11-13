@@ -1,0 +1,66 @@
+# A release on a pushed tag vX.Y.Z: this package's CI on the tagged commit (ci.yml, called), then the
+# checks (the tag is the csproj's Version and package.json's version, CHANGELOG.md has its section),
+# dotnet pack, the GitHub release with the changelog's section as notes and the .nupkg/.snupkg
+# attached, and `dotnet nuget push` to nuget.org - only when the repository holds the secret
+# NUGET_API_KEY (a nuget.org API key scoped to push Omniplay.Dotnet); without it, a notice, and the
+# maintainer pushes by hand. Unity users install the tag itself by Git URL (#vX.Y.Z).
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  release:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write   # the GitHub release
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: The tag is the package's version, the changelog has its section
+        id: version
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME#v}"
+          nuget=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' 'Dotnet~/Omniplay.Dotnet.csproj')
+          upm=$(jq -r .version package.json)
+          if [ "$nuget" != "$version" ] || [ "$upm" != "$version" ]; then echo "::error::The csproj says $nuget, package.json $upm, the tag $GITHUB_REF_NAME."; exit 1; fi
+          awk -v v="$version" '/^## /{ if (found) exit; h=$0; gsub(/[\[\]]/, "", h); split(h, w, /[ \t]+/); if (w[2] == v) { found=1; next } } found' CHANGELOG.md | sed -e '/./,$!d' > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then echo "::error::CHANGELOG.md has no section ## [$version]."; exit 1; fi
+          case "$version" in *-*|0.*) echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=" >> "$GITHUB_OUTPUT" ;; esac
+
+      - name: dotnet pack
+        run: dotnet pack 'Dotnet~/Omniplay.Dotnet.csproj' -c Release -o out
+
+      - name: The GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file notes.md ${{ steps.version.outputs.prerelease }} out/*.nupkg out/*.snupkg
+
+      - name: dotnet nuget push, when NUGET_API_KEY is set
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          set -eu
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::notice::No NUGET_API_KEY secret: not published. By hand: README, Releasing."
+            exit 0
+          fi
+          dotnet nuget push "out/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json
